@@ -83,6 +83,7 @@ DATABASES = {
         'NAME': 'develop',
         'USER': 'develop',
         'PASSWORD': 'develop',
+        # When runnning using docker-compose HOST should be name of service
         'HOST': 'localhost',
         'PORT': '5432',
     }

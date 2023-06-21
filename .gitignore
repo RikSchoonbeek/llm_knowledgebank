@@ -6,7 +6,7 @@
 /staticfiles/*
 /mediafiles/*
 __pycache__/
-/.vscode/
+/docker/
 
 # coverage result
 .coverage
@@ -16,7 +16,8 @@ __pycache__/
 .idea/
 
 # VSCode
-.devcontainer/
+./devcontainer/
+/.vscode/
 
 # data
 *.dump
