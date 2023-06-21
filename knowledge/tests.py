@@ -8,13 +8,13 @@ from user.models import User
 
 
 class DocumentViewSetTestCase(APITestCase):
-
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='testuser', password='12345')
+        cls.user = User.objects.create_user(username="testuser", password="12345")
+        cls.user_2 = User.objects.create_user(username="testuser_2", password="12345")
         cls.tag_1 = Tag.objects.create(
-            name='Test Tag 1',
-            description='This is a test tag',
+            name="Test Tag 1",
+            description="This is a test tag",
             owner=cls.user,
             created_by=cls.user,
         )
@@ -24,62 +24,62 @@ class DocumentViewSetTestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
         self.test_file_content = b"file_content"
         self.existing_document_data = {
-            'name': 'Test Document',
-            'description': 'This is a test document',
-            'content': SimpleUploadedFile(
-                "test_file.txt", self.test_file_content,
+            "name": "Test Document",
+            "description": "This is a test document",
+            "content": SimpleUploadedFile(
+                "test_file.txt",
+                self.test_file_content,
             ),
-            'owner': self.user,
-            'created_by': self.user,
+            "owner": self.user,
+            "created_by": self.user,
         }
-        self.document = Document.objects.create(
-            **self.existing_document_data
-        )
+        self.document = Document.objects.create(**self.existing_document_data)
         self.other_test_file_content = b"other_file_content"
         self.new_document_data = {
-            'name': 'New Test Document',
-            'description': 'This is a new test document',
-            'content': SimpleUploadedFile(
-                "other_test_file.txt", self.other_test_file_content,
+            "name": "New Test Document",
+            "description": "This is a new test document",
+            "content": SimpleUploadedFile(
+                "other_test_file.txt",
+                self.other_test_file_content,
             ),
-            'owner': self.user.id,
-            'created_by': self.user.id,
+            "owner": self.user_2.id,
+            "created_by": self.user_2.id,
         }
 
     def test_create_document(self):
         response = self.client.post(
-            reverse('document-list'), 
+            reverse("document-list"),
             self.new_document_data,
         )
         self.assertEqual(
-            response.status_code, 
+            response.status_code,
             status.HTTP_201_CREATED,
         )
 
         try:
-            created_document = Document.objects.get(id=response.data['id'])
+            created_document = Document.objects.get(id=response.data["id"])
         except Document.DoesNotExist:
-            raise AssertionError('Document was not created')
-        
-        self.assertCountEqual(
+            raise AssertionError("Document was not created")
+
+        self.assertDictEqual(
             {
-                'content': f'http://testserver/{created_document.content.name}',
-                'created_by': 8,
-                'description': 'This is a new test document',
-                'id': 9,
-                'name': 'New Test Document',
-                'owner': 8,
-                'tags': [],
-            }, 
+                "content": f"http://testserver/{created_document.content.name}",
+                "created_by": self.user_2.id,
+                "description": "This is a new test document",
+                "id": created_document.id,
+                "name": "New Test Document",
+                "owner": self.user_2.id,
+                "tags": [],
+            },
             response.data,
         )
 
         self.assertEqual(
-            self.new_document_data['name'],
-            created_document.name, 
+            self.new_document_data["name"],
+            created_document.name,
         )
         self.assertEqual(
-            self.new_document_data['description'],
+            self.new_document_data["description"],
             created_document.description,
         )
         self.assertEqual(
@@ -87,37 +87,101 @@ class DocumentViewSetTestCase(APITestCase):
             created_document.content.read(),
         )
         self.assertEqual(
-            self.new_document_data['owner'],
+            self.new_document_data["owner"],
             created_document.owner.id,
         )
         self.assertEqual(
-            self.new_document_data['created_by'],
+            self.new_document_data["created_by"],
             created_document.created_by.id,
         )
 
-    # def test_update_document(self):
-    #     response = self.client.put(reverse('document-detail', kwargs={'pk': self.document.id}), self.new_document_data)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(Document.objects.get(id=self.document.id).name, self.new_document_data['name'])
+    def test_update_document(self):
+        response = self.client.put(
+            reverse("document-detail", kwargs={"pk": self.document.id}),
+            self.new_document_data,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # def test_get_document(self):
-    #     response = self.client.get(reverse('document-detail', kwargs={'pk': self.document.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.document.refresh_from_db()
+        updated_document = self.document
 
-    # def test_delete_document(self):
-    #     response = self.client.delete(reverse('document-detail', kwargs={'pk': self.document.id}))
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-    #     self.assertEqual(Document.objects.count(), 0)
+        self.assertDictEqual(
+            {
+                "content": f"http://testserver/{updated_document.content.name}",
+                "created_by": self.user_2.id,
+                "description": "This is a new test document",
+                "id": self.document.id,
+                "name": "New Test Document",
+                "owner": self.user_2.id,
+                "tags": [],
+            },
+            response.data,
+        )
 
-    # def test_list_documents(self):
-    #     response = self.client.get(reverse('document-list'))
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response.data), 1)
-    #     self.assertCountEqual([
-    #         {
+        self.assertEqual(
+            self.new_document_data["name"],
+            updated_document.name,
+        )
+        self.assertEqual(
+            self.new_document_data["description"],
+            updated_document.description,
+        )
+        self.assertEqual(
+            self.other_test_file_content,
+            updated_document.content.read(),
+        )
+        self.assertEqual(
+            self.new_document_data["owner"],
+            updated_document.owner.id,
+        )
+        self.assertEqual(
+            self.new_document_data["created_by"],
+            updated_document.created_by.id,
+        )
 
-    #         }
-    #     ])
+    def test_get_document(self):
+        response = self.client.get(
+            reverse("document-detail", kwargs={"pk": self.document.id})
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(
+            {
+                "content": f"http://testserver/{self.document.content.name}",
+                "created_by": self.user.id,
+                "description": self.document.description,
+                "id": self.document.id,
+                "name": self.document.name,
+                "owner": self.user.id,
+                "tags": [],
+            },
+            response.data,
+        )
+
+    def test_delete_document(self):
+        response = self.client.delete(
+            reverse("document-detail", kwargs={"pk": self.document.id})
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Document.objects.count(), 0)
+
+    def test_list_documents(self):
+        response = self.client.get(reverse("document-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertCountEqual(
+            [
+                {
+                    "content": f"http://testserver/{self.document.content.name}",
+                    "created_by": self.user.id,
+                    "description": self.document.description,
+                    "id": self.document.id,
+                    "name": self.document.name,
+                    "owner": self.user.id,
+                    "tags": [],
+                }
+            ],
+            response.data,
+        )
 
 
 # class TagViewSetTestCase(APITestCase):
