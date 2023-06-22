@@ -43,7 +43,6 @@ class DocumentViewSetTestCase(APITestCase):
                 self.other_test_file_content,
             ),
             "owner": self.user_2.id,
-            "created_by": self.user_2.id,
         }
 
     def test_create_document(self):
@@ -64,7 +63,6 @@ class DocumentViewSetTestCase(APITestCase):
         self.assertDictEqual(
             {
                 "content": f"http://testserver/{created_document.content.name}",
-                "created_by": self.user_2.id,
                 "description": "This is a new test document",
                 "id": created_document.id,
                 "name": "New Test Document",
@@ -91,8 +89,8 @@ class DocumentViewSetTestCase(APITestCase):
             created_document.owner.id,
         )
         self.assertEqual(
-            self.new_document_data["created_by"],
-            created_document.created_by.id,
+            self.user,
+            created_document.created_by,
         )
 
     def test_update_document(self):
@@ -108,7 +106,6 @@ class DocumentViewSetTestCase(APITestCase):
         self.assertDictEqual(
             {
                 "content": f"http://testserver/{updated_document.content.name}",
-                "created_by": self.user_2.id,
                 "description": "This is a new test document",
                 "id": self.document.id,
                 "name": "New Test Document",
@@ -135,8 +132,8 @@ class DocumentViewSetTestCase(APITestCase):
             updated_document.owner.id,
         )
         self.assertEqual(
-            self.new_document_data["created_by"],
-            updated_document.created_by.id,
+            self.user,
+            updated_document.created_by,
         )
 
     def test_get_document(self):
@@ -147,7 +144,6 @@ class DocumentViewSetTestCase(APITestCase):
         self.assertCountEqual(
             {
                 "content": f"http://testserver/{self.document.content.name}",
-                "created_by": self.user.id,
                 "description": self.document.description,
                 "id": self.document.id,
                 "name": self.document.name,
@@ -172,7 +168,6 @@ class DocumentViewSetTestCase(APITestCase):
             [
                 {
                     "content": f"http://testserver/{self.document.content.name}",
-                    "created_by": self.user.id,
                     "description": self.document.description,
                     "id": self.document.id,
                     "name": self.document.name,
