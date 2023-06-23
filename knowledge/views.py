@@ -6,7 +6,7 @@ from rest_framework.mixins import (
     DestroyModelMixin,
 )
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from knowledge.models import Document, Tag
 from knowledge.serializers import DocumentSerializer, TagSerializer
