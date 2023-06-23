@@ -26,6 +26,10 @@ class Document(BaseModel):
         related_name="documents",
     )
 
+    def delete(self):
+        self.content.delete()
+        super().delete()
+
 
 class Tag(BaseModel):
     """

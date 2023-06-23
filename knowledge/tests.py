@@ -114,6 +114,53 @@ class DocumentViewSetTestCase(APITestCase):
             created_document.created_by,
         )
 
+    def test_delete_document(self):
+        """Assert Document instance, and content file, are deleted"""
+        response = self.client.delete(
+            reverse("document-detail", kwargs={"pk": self.document.id})
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Document.objects.count(), 0)
+
+        # Assert content file is deleted
+        with self.assertRaises(FileNotFoundError):
+            self.document.content.open()
+
+    def test_get_document(self):
+        response = self.client.get(
+            reverse("document-detail", kwargs={"pk": self.document.id})
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertDictEqual(
+            {
+                "content": f"http://testserver/{self.document.content.name}",
+                "description": self.document.description,
+                "id": self.document.id,
+                "name": self.document.name,
+                "owner": self.document.owner.id,
+                "tags": list(self.document.tags.all().values_list("id", flat=True)),
+            },
+            response.data,
+        )
+
+    def test_list_documents(self):
+        response = self.client.get(reverse("document-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertCountEqual(
+            [
+                {
+                    "content": f"http://testserver/{self.document.content.name}",
+                    "description": self.document.description,
+                    "id": self.document.id,
+                    "name": self.document.name,
+                    "owner": self.document.owner.id,
+                    "tags": list(self.document.tags.all().values_list("id", flat=True)),
+                }
+            ],
+            response.data,
+        )
+
     def test_update_document(self):
         response = self.client.put(
             reverse("document-detail", kwargs={"pk": self.document.id}),
@@ -159,48 +206,6 @@ class DocumentViewSetTestCase(APITestCase):
         self.assertEqual(
             self.new_document_data["tags"],
             list(updated_document.tags.all().values_list("id", flat=True)),
-        )
-
-    def test_get_document(self):
-        response = self.client.get(
-            reverse("document-detail", kwargs={"pk": self.document.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(
-            {
-                "content": f"http://testserver/{self.document.content.name}",
-                "description": self.document.description,
-                "id": self.document.id,
-                "name": self.document.name,
-                "owner": self.document.owner.id,
-                "tags": list(self.document.tags.all().values_list("id", flat=True)),
-            },
-            response.data,
-        )
-
-    def test_delete_document(self):
-        response = self.client.delete(
-            reverse("document-detail", kwargs={"pk": self.document.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Document.objects.count(), 0)
-
-    def test_list_documents(self):
-        response = self.client.get(reverse("document-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertCountEqual(
-            [
-                {
-                    "content": f"http://testserver/{self.document.content.name}",
-                    "description": self.document.description,
-                    "id": self.document.id,
-                    "name": self.document.name,
-                    "owner": self.document.owner.id,
-                    "tags": list(self.document.tags.all().values_list("id", flat=True)),
-                }
-            ],
-            response.data,
         )
 
 
