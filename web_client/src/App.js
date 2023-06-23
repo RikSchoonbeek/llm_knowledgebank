@@ -1,9 +1,13 @@
 import './App.css';
+import DocumentOverview from "./components/Document/DocumentOverview";
 
 function App() {
   return (
     <div className="App">
-        <h1>React App</h1>
+        <DocumentOverview/>
+        <main>
+            <h1>Document Management System</h1>
+        </main>
     </div>
   );
 }
