@@ -35,6 +35,22 @@ class DocumentViewSet(
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
-class TagViewSet(ModelViewSet):
+class TagViewSet(
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    GenericViewSet,
+):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag = Tag.objects.create(
+            **serializer.validated_data,
+            created_by=self.request.user,
+        )
+        response_serializer = self.get_serializer(instance=tag)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)

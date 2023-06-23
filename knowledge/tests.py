@@ -18,6 +18,12 @@ class DocumentViewSetTestCase(APITestCase):
             owner=cls.user,
             created_by=cls.user,
         )
+        cls.tag_2 = Tag.objects.create(
+            name="Test Tag 2",
+            description="Some description",
+            owner=cls.user,
+            created_by=cls.user,
+        )
 
     def setUp(self):
         self.client = APIClient()
@@ -34,6 +40,7 @@ class DocumentViewSetTestCase(APITestCase):
             "created_by": self.user,
         }
         self.document = Document.objects.create(**self.existing_document_data)
+        self.document.tags.set([self.tag_1])
         self.other_test_file_content = b"other_file_content"
         self.new_document_data = {
             "name": "New Test Document",
@@ -43,6 +50,7 @@ class DocumentViewSetTestCase(APITestCase):
                 self.other_test_file_content,
             ),
             "owner": self.user_2.id,
+            "tags": [self.tag_2.id],
         }
 
     def test_create_document(self):
@@ -67,7 +75,7 @@ class DocumentViewSetTestCase(APITestCase):
                 "id": created_document.id,
                 "name": "New Test Document",
                 "owner": self.user_2.id,
-                "tags": [],
+                "tags": [self.tag_2.id],
             },
             response.data,
         )
@@ -106,11 +114,11 @@ class DocumentViewSetTestCase(APITestCase):
         self.assertDictEqual(
             {
                 "content": f"http://testserver/{updated_document.content.name}",
-                "description": "This is a new test document",
+                "description": self.new_document_data["description"],
                 "id": self.document.id,
-                "name": "New Test Document",
-                "owner": self.user_2.id,
-                "tags": [],
+                "name": self.new_document_data["name"],
+                "owner": self.new_document_data["owner"],
+                "tags": self.new_document_data["tags"],
             },
             response.data,
         )
@@ -135,20 +143,24 @@ class DocumentViewSetTestCase(APITestCase):
             self.user,
             updated_document.created_by,
         )
+        self.assertEqual(
+            self.new_document_data["tags"],
+            list(updated_document.tags.all().values_list("id", flat=True)),
+        )
 
     def test_get_document(self):
         response = self.client.get(
             reverse("document-detail", kwargs={"pk": self.document.id})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertCountEqual(
+        self.assertDictEqual(
             {
                 "content": f"http://testserver/{self.document.content.name}",
                 "description": self.document.description,
                 "id": self.document.id,
                 "name": self.document.name,
-                "owner": self.user.id,
-                "tags": [],
+                "owner": self.document.owner.id,
+                "tags": list(self.document.tags.all().values_list("id", flat=True)),
             },
             response.data,
         )
@@ -171,40 +183,64 @@ class DocumentViewSetTestCase(APITestCase):
                     "description": self.document.description,
                     "id": self.document.id,
                     "name": self.document.name,
-                    "owner": self.user.id,
-                    "tags": [],
+                    "owner": self.document.owner.id,
+                    "tags": list(self.document.tags.all().values_list("id", flat=True)),
                 }
             ],
             response.data,
         )
 
 
-# class TagViewSetTestCase(APITestCase):
-#     def setUp(self):
-#         self.user = User.objects.create_user(username='testuser', password='12345')
-#         self.client = APIClient()
-#         self.client.force_authenticate(user=self.user)
-#         self.tag = Tag.objects.create(
-#             name='Test Tag',
-#             description='This is a test tag',
-#             owner=self.user,
-#         )
-#         self.tag_data = {
-#             'name': 'New Test Tag',
-#             'description': 'This is a new test tag',
-#             'owner': self.user.id,
-#         }
+class TagViewSetTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="12345")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
 
-#     def test_create_tag(self):
-#         response = self.client.post(reverse('tag-list'), self.tag_data)
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(Tag.objects.get(name=self.tag_data['name']).description, self.tag_data['description'])
+        self.tag = Tag.objects.create(
+            name="Test Tag",
+            description="This is a test tag",
+            owner=self.user,
+            created_by=self.user,
+        )
+        self.tag_data = {
+            "name": "New Test Tag",
+            "description": "This is a new test tag",
+            "owner": self.user.id,
+        }
 
-#     def test_update_tag(self):
-#         response = self.client.put(reverse('tag-detail', kwargs={'pk': self.tag.id}), self.tag_data)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(Tag.objects.get(id=self.tag.id).name, self.tag_data['name'])
+    def test_create_tag(self):
+        response = self.client.post(reverse("tag-list"), self.tag_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-#     def test_get_tag(self):
-#         response = self.client.get(reverse('tag-detail', kwargs={'pk': self.tag.id}))
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        created_tag = Tag.objects.last()
+
+        # Assert response data contains data of created tag
+        self.assertDictEqual(
+            {
+                "id": created_tag.id,
+                **self.tag_data,
+            },
+            response.data,
+        )
+        # Assert tag is created with expected data
+        self.assertEqual(
+            self.tag_data["description"],
+            created_tag.description,
+        )
+        self.assertEqual(
+            self.tag_data["name"],
+            created_tag.name,
+        )
+        self.assertEqual(self.tag_data["owner"], created_tag.owner.id)
+
+    def test_update_tag(self):
+        response = self.client.put(
+            reverse("tag-detail", kwargs={"pk": self.tag.id}), self.tag_data
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Tag.objects.get(id=self.tag.id).name, self.tag_data["name"])
+
+    def test_get_tag(self):
+        response = self.client.get(reverse("tag-detail", kwargs={"pk": self.tag.id}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
