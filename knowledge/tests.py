@@ -1,4 +1,9 @@
+import shutil
+import tempfile
+
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
@@ -7,6 +12,9 @@ from knowledge.models import Document, Tag
 from user.models import User
 
 
+# A temporary directory is used for file storage during tests, to be deleted
+# when the tests are finished.
+@override_settings(MEDIA_ROOT=(tempfile.mkdtemp()))
 class DocumentViewSetTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -52,6 +60,11 @@ class DocumentViewSetTestCase(APITestCase):
             "owner": self.user_2.id,
             "tags": [self.tag_2.id],
         }
+
+    def tearDown(self):
+        # See comment above TestCase
+        shutil.rmtree(settings.MEDIA_ROOT)
+        super().tearDown()
 
     def test_create_document(self):
         response = self.client.post(

@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "core",
     "knowledge",
     "user",
@@ -78,14 +77,14 @@ WSGI_APPLICATION = "core.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'develop',
-        'USER': 'develop',
-        'PASSWORD': 'develop',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "develop",
+        "USER": "develop",
+        "PASSWORD": "develop",
         # When runnning using docker-compose HOST should be name of service
-        'HOST': 'localhost',
-        'PORT': '5432',
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
@@ -114,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Amsterdam"
 
 USE_I18N = True
 
@@ -131,4 +130,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = "user.User"
+
+MEDIA_ROOT = BASE_DIR / "media"
