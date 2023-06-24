@@ -34,6 +34,9 @@ class DocumentViewSet(
         response_serializer = self.get_serializer(instance=document)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
+    def get_queryset(self):
+        return self.queryset.filter(owner=self.request.user)
+
 
 class TagViewSet(
     DestroyModelMixin,
@@ -54,3 +57,6 @@ class TagViewSet(
         )
         response_serializer = self.get_serializer(instance=tag)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        return self.queryset.filter(owner=self.request.user)

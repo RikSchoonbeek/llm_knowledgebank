@@ -83,7 +83,7 @@ class DocumentViewSetTestCase(APITestCase):
 
         self.assertDictEqual(
             {
-                "content": f"http://testserver/{created_document.content.name}",
+                "content": f"http://testserver{settings.MEDIA_URL}{created_document.content.name}",
                 "description": "This is a new test document",
                 "id": created_document.id,
                 "name": "New Test Document",
@@ -133,7 +133,7 @@ class DocumentViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertDictEqual(
             {
-                "content": f"http://testserver/{self.document.content.name}",
+                "content": f"http://testserver{settings.MEDIA_URL}{self.document.content.name}",
                 "description": self.document.description,
                 "id": self.document.id,
                 "name": self.document.name,
@@ -144,13 +144,24 @@ class DocumentViewSetTestCase(APITestCase):
         )
 
     def test_list_documents(self):
+        """Assert only documents owned by the authenticated user are returned"""
+        Document.objects.create(
+            name="Other Document",
+            description="This is another test document",
+            content=SimpleUploadedFile(
+                "other_test_file.txt",
+                self.other_test_file_content,
+            ),
+            owner=self.user_2,
+            created_by=self.user_2,
+        )
         response = self.client.get(reverse("document-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertCountEqual(
             [
                 {
-                    "content": f"http://testserver/{self.document.content.name}",
+                    "content": f"http://testserver{settings.MEDIA_URL}{self.document.content.name}",
                     "description": self.document.description,
                     "id": self.document.id,
                     "name": self.document.name,
@@ -173,7 +184,7 @@ class DocumentViewSetTestCase(APITestCase):
 
         self.assertDictEqual(
             {
-                "content": f"http://testserver/{updated_document.content.name}",
+                "content": f"http://testserver{settings.MEDIA_URL}{updated_document.content.name}",
                 "description": self.new_document_data["description"],
                 "id": self.document.id,
                 "name": self.new_document_data["name"],
@@ -210,8 +221,12 @@ class DocumentViewSetTestCase(APITestCase):
 
 
 class TagViewSetTestCase(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username="testuser", password="12345")
+        cls.user_2 = User.objects.create_user(username="testuser_2", password="12345")
+
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="12345")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -262,3 +277,26 @@ class TagViewSetTestCase(APITestCase):
     def test_get_tag(self):
         response = self.client.get(reverse("tag-detail", kwargs={"pk": self.tag.id}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_list_tags(self):
+        """Assert only tags owned by the authenticated user are returned"""
+        Tag.objects.create(
+            name="Other Tag",
+            description="This is another test tag",
+            owner=self.user_2,
+            created_by=self.user_2,
+        )
+        response = self.client.get(reverse("tag-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertCountEqual(
+            [
+                {
+                    "id": self.tag.id,
+                    "name": self.tag.name,
+                    "description": self.tag.description,
+                    "owner": self.tag.owner.id,
+                },
+            ],
+            response.data,
+        )
