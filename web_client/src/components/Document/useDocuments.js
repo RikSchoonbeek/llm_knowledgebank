@@ -1,24 +1,13 @@
-import {useEffect, useState} from 'react';
-import axios from 'axios';
-
-import {apiUrls} from "../../SystemConfig";
+import { useContext } from 'react'
+import { DocumentsContext } from './DocumentsContext'
 
 const useDocuments = () => {
-    const [documents, setDocuments] = useState([]);
+  const { documents, setDocuments } = useContext(DocumentsContext)
 
-    useEffect(() => {
-        axios.get(apiUrls.document())
-            .then(response => {
-                setDocuments(response.data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }, []); // empty array means this effect runs once on mount
-
-    return {
-        documents,
-    };
+  return {
+    documents,
+    setDocuments,
+  }
 }
 
-export default useDocuments;
+export default useDocuments
