@@ -1,7 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-
-import Button from './Button'
 import CheckBoxInput from './CheckBoxInput'
 import RadioGroup from './RadioGroup'
 import TextArea from './TextArea'
@@ -12,14 +10,14 @@ import SelectInput from './SelectInput'
 import FileInput from './FileInput'
 
 const FormComponent = ({
-  buttonHandlers,
+  buttons,
   formConfig,
   onChange,
   errors,
   values,
   fieldOptions,
 }) => {
-  const { formFields, buttons } = formConfig
+  const { formFields } = formConfig
 
   // TODO apply field validation
   return (
@@ -96,11 +94,7 @@ const FormComponent = ({
         }
         return null
       })}
-      {buttons &&
-        buttons.map((button, i) => {
-          const clickHandler = buttonHandlers[button.onClick]
-          return <Button key={i} button={button} onClick={clickHandler} />
-        })}
+      {buttons && <div className="button-bar">{buttons}</div>}
     </form>
   )
 }
@@ -118,7 +112,7 @@ FormComponent.propTypes = {
   // The errors of the form inputs
   errors: PropTypes.object,
   // The functions that will be called on click of the corresponding button
-  buttonHandlers: PropTypes.object,
+  buttons: PropTypes.array,
 }
 
 export default FormComponent

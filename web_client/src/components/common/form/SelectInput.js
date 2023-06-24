@@ -10,6 +10,7 @@ const SelectInput = ({ field, value, errors, onChange, options }) => {
   return (
     // Used for text and email inputs
     <div className="field-container">
+      <label>{field.label}</label>
       <Autocomplete
         value={value}
         inputValue={inputValue}
@@ -17,7 +18,7 @@ const SelectInput = ({ field, value, errors, onChange, options }) => {
         options={fieldOptions}
         onChange={(e, newValue) => onChange(field.name, newValue)}
         onInputChange={(e, newInputValue) => setInputValue(newInputValue)}
-        renderInput={(params) => <TextField {...params} label={field.label} />}
+        renderInput={(params) => <TextField {...params} />}
         isOptionEqualToValue={(option, value) => option.id === value.id}
       />
       <ErrorArea errors={errors} />
