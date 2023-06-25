@@ -1,0 +1,15 @@
+.document-container {
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.document-container.context-menu-open {
+    background-color: #FCA311;
+}
+
+.document-container .document-name {
+    margin-bottom: 5px;
+    padding: 1px 4px;
+    font-weight: bold;
+}

@@ -1,17 +1,42 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import DocumentContextMenu from './DocumentContextMenu'
+
+import '../../css/document.css'
 
 const Document = ({ document }) => {
+  const [menuOpen, setOpenMenu] = useState(false)
+  const [menuPosition, setMenuPosition] = useState(null)
+
+  const handleCloseMenu = () => {
+    setOpenMenu(false)
+    setMenuPosition(null)
+  }
+
+  const openContextMenu = (e) => {
+    e.preventDefault()
+    setOpenMenu(true)
+    setMenuPosition({ x: e.clientX, y: e.clientY })
+  }
+
+  const getContainerClassName = () => {
+    let className = 'document-container'
+    if (menuOpen) {
+      className += ' context-menu-open'
+    }
+    return className
+  }
+
   return (
-    <div>
-      <h2>{document.name}</h2>
-      <p>{document.description}</p>
-      <a href={document.content}>Download Document</a>
-      <p>
-        {document.tags.map((tag) => (
-          <span key={tag.id}>{tag.name}</span>
-        ))}
-      </p>
+    <div className={getContainerClassName()} onContextMenu={openContextMenu}>
+      <div className="document-name">{document.name}</div>
+      {menuOpen && (
+        <DocumentContextMenu
+          document={document}
+          menuPosition={menuPosition}
+          onCloseMenu={handleCloseMenu}
+        />
+      )}
     </div>
   )
 }

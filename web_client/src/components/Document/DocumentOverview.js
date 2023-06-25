@@ -6,6 +6,8 @@ import { ModalContext } from '../common/ModalContext'
 import useDocuments from './useDocuments'
 import DocumentForm from './DocumentForm'
 
+import '../../css/document-overview.css'
+
 function DocumentOverview() {
   const { documents } = useDocuments()
   const { setModal } = useContext(ModalContext)
@@ -15,7 +17,7 @@ function DocumentOverview() {
   }
 
   return (
-    <div>
+    <div className="document-overview-container">
       <button onClick={openAddDocumentModal} title="Add new document">
         +
       </button>
