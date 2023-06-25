@@ -11,17 +11,26 @@ import FileInput from './FileInput'
 
 const FormComponent = ({
   buttons,
+  extraClassName,
+  fieldOptions,
   formConfig,
   onChange,
   errors,
   values,
-  fieldOptions,
 }) => {
   const { formFields } = formConfig
 
+  const getClassName = () => {
+    let className = 'form-component-container'
+    if (extraClassName) {
+      className += ` ${extraClassName}`
+    }
+    return className
+  }
+
   // TODO apply field validation
   return (
-    <form name={formConfig.formName} className="form-component-container">
+    <form name={formConfig.formName} className={getClassName()}>
       {formFields.map((field) => {
         const fieldValue = values[field.name]
         const fieldErrors = errors[field.name]
@@ -113,6 +122,7 @@ FormComponent.propTypes = {
   errors: PropTypes.object,
   // The functions that will be called on click of the corresponding button
   buttons: PropTypes.array,
+  extraClassName: PropTypes.string,
 }
 
 export default FormComponent

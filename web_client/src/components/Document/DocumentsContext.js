@@ -1,14 +1,16 @@
 import React, { createContext, useState } from 'react'
 import PropTypes from 'prop-types'
 
-import { documentFormInitData } from '../common/form/emptyFormData'
+import { emptyDocumentFormData } from '../common/form/emptyFormData'
 
 export const DocumentsContext = createContext()
 
 export function DocumentsProvider({ children }) {
   const [documents, setDocuments] = useState([])
   const [tags, setTags] = useState([])
-  const [documentFormData, setDocumentFormData] = useState(documentFormInitData)
+  const [documentFormData, setDocumentFormData] = useState(
+    emptyDocumentFormData
+  )
 
   return (
     <DocumentsContext.Provider

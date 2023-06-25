@@ -1,4 +1,5 @@
-export const documentFormConfig = {
+// Form config with elements that are common for both create and edit modes
+const baseDocumentFormConfig = {
   formName: 'documentForm',
   formFields: [
     {
@@ -27,13 +28,21 @@ export const documentFormConfig = {
         required: true,
       },
     },
-    {
+  ],
+}
+
+export const getDocumentFormConfig = (formMode) => {
+  // Add file field for create mode, as it is not editable. Another file means a new document.
+  const formConfig = { ...baseDocumentFormConfig }
+  if (formMode === 'create') {
+    formConfig.formFields.push({
       type: 'file',
       name: 'content',
       label: 'File',
       field_validation: {
         required: true,
       },
-    },
-  ],
+    })
+  }
+  return formConfig
 }

@@ -1,0 +1,9 @@
+.form-component-container .button-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.form-component-container .button-bar button {
+    margin-left: 10px;
+}

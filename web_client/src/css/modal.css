@@ -37,6 +37,12 @@
   border-radius: 5px;
 }
 
+.modal-title-container {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 9px;
+  margin: 0 0 11px 0;
+}
+
 .modal-buttons-container {
   display: flex;
   justify-content: flex-end;
